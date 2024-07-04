@@ -82,5 +82,7 @@ def finalizePlot(ax, title="", outputFn="", showplot=True,  showlegend=True, tig
 
 
 
-
-
+def getColorList(numberColors, cmap="copper"):
+    cm=plt.get_cmap(cmap)
+    colors=[cm(i/numberColors) for i in range(numberColors)]
+    return colors
