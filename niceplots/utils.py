@@ -8,22 +8,21 @@ import matplotlib.pyplot as plt
 
 
 def initPlot(fontsize=20, titlesize=20, labelsize=18, legendsize=14, usetex=True, fontfamily="sans-serif",
-             topticks=True, rightticks=True, tickdirection="in"):
+             topticks=True, rightticks=True, tickdirection="in"): 
     """
     Sets the basics of the plot
 
-    Parameters
-    ----------
-    fontsize : int (optional)
-        Fontsize of standard text in plot (default: 16)
-    titlesize :  int (optional)
-        Fontsize of title (default: 16)
-    labelsize : int (optional)
-        Fontsize of tick-labels and legend (default: 16)
-    usetex : bool (optional)
-        If true: Text is renderd as LaTeX (default: True)
+    Args:
+        fontsize (int, optional): Fontsize of standard text in plot. Defaults to 20.
+        titlesize (int, optional): Fontsize of title. Defaults to 20.
+        labelsize (int, optional): Fontsize of tick-labels. Defaults to 18.
+        legendsize (int, optional): Fontsize of legend. Defaults to 14.
+        usetex (bool, optional): If true: Text is rendered as LaTeX. Defaults to True.
+        fontfamily (str, optional): Font family to choose (serif, sans-serif, monospace). Defaults to "sans-serif".
+        topticks (bool, optional): If true: Also displays xticks at the top of plots. Defaults to True.
+        rightticks (bool, optional): If true: Also displays yticks at right of plots. Defaults to True.
+        tickdirection (str, optional): Where ticks should point to (in or out). Defaults to "in".
     """
-
     properties =    {
         "text.usetex": usetex,
         "font.family": fontfamily,
@@ -42,47 +41,65 @@ def initPlot(fontsize=20, titlesize=20, labelsize=18, legendsize=14, usetex=True
 
     plt.rcParams.update(properties)
     
-
-
 def finalizePlot(ax, title="", outputFn="", showplot=True,  showlegend=True, tightlayout=True, legendcols=1, loc_legend="best", facecolor="white", dpi=300):
-    """
-    Finalizes Plots, saves it and shows it
+    """Finalizes Plots, saves it and shows it
 
-    Parameters
-    ----------
-    ax : axis object from Matplotlib
-        Plot to be shown
-    title : string (optional)
-        Title of Plot (default: no title)
-    outputFn : string (optional)
-        Filename to which Plot should be saved (default: not saved)
-    showplot : bool (optional)
-        If true, plot is displayed after saving (default: True)
-    showlegend : bool (optional)
-        If true, a legend is shown (default: True)
-    tightlayout : bool (optional)
-        If true, matplotlibs option "tightlayout" is used (default: True)
+    Args:
+        ax (axis object from Matplotlib): Plot to be shown
+        title (str, optional): TItle of plot. If empty: no title shown. Defaults to "".
+        outputFn (str, optional): Filename to which plot should be saved. If empty: plot not saved. Defaults to "".
+        showplot (bool, optional): If true: plot is shown. Defaults to True.
+        showlegend (bool, optional): If true: legend is shown. Defaults to True.
+        tightlayout (bool, optional): If true, matplotlibs option "tightlayout" is used. Defaults to True. Should be turned off for multi-panel plots.
+        legendcols (int, optional): Number of columns in legend. Defaults to 1.
+        loc_legend (str, optional): Location of legend. Defaults to "best".
+        facecolor (str, optional): Background color of plot. Defaults to "white".
+        dpi (int, optional): Number of dots per inch (i.e. resolution). Defaults to 300.
     """
 
+    # Set title
     if(title != ""):
         ax.set_title(title)
 
-
+    # Show legend
     if(showlegend):
         plt.legend(loc=loc_legend, ncol=legendcols)
 
+    # Set tightlayout
     if(tightlayout):
         plt.tight_layout()
 
+    # Save figure
     if(outputFn != ""):
         plt.savefig(outputFn, dpi=dpi, facecolor=facecolor)
 
+    # Show plot
     if(showplot):
         plt.show()
 
 
-
 def getColorList(numberColors, cmap="copper"):
+    """Generates sequential list of colors from matplotlib colormaps
+
+    Args:
+        numberColors (int): number of colors to generate
+        cmap (str, optional): name of colormap. Defaults to "copper". Check https://matplotlib.org/stable/users/explain/colors/colormaps.html for possible values.
+
+    Returns:
+        _type_: _description_
+    """
+
+    # Check if number of colors is integer
+    if not isinstance(numberColors, int):
+        raise ValueError("Number of colors needs to be an integer")
+    
+    # Create colormap
     cm=plt.get_cmap(cmap)
+    
+    # Create list of colors
     colors=[cm(i/numberColors) for i in range(numberColors)]
     return colors
+
+
+
+# """
