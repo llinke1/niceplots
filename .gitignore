@@ -3,3 +3,5 @@ __pycache__/
 niceplots.egg-info/
 
 *.pdf
+
+build/lib/
