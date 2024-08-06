@@ -5,3 +5,5 @@ niceplots.egg-info/
 *.pdf
 
 build/lib/
+
+test/

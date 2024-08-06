@@ -5,41 +5,24 @@ Functions for creating nice matplotlib plots
 import numpy as np
 from matplotlib.offsetbox import AnchoredText
 import matplotlib.pyplot as plt
+from importlib_resources import files
+import sys
 
-
-def initPlot(fontsize=20, titlesize=20, labelsize=18, legendsize=14, usetex=True, fontfamily="sans-serif",
-             topticks=True, rightticks=True, tickdirection="in"): 
+def initPlot(version=1):
     """
-    Sets the basics of the plot
+    Sets the basics of the plot by initializing the euclid stylesheet
 
     Args:
-        fontsize (int, optional): Fontsize of standard text in plot. Defaults to 20.
-        titlesize (int, optional): Fontsize of title. Defaults to 20.
-        labelsize (int, optional): Fontsize of tick-labels. Defaults to 18.
-        legendsize (int, optional): Fontsize of legend. Defaults to 14.
-        usetex (bool, optional): If true: Text is rendered as LaTeX. Defaults to True.
-        fontfamily (str, optional): Font family to choose (serif, sans-serif, monospace). Defaults to "sans-serif".
-        topticks (bool, optional): If true: Also displays xticks at the top of plots. Defaults to True.
-        rightticks (bool, optional): If true: Also displays yticks at right of plots. Defaults to True.
-        tickdirection (str, optional): Where ticks should point to (in or out). Defaults to "in".
+        version (int, optional): Which version of the stylesheet to use. Defaults to 1. Currently only 0 and 1 are available.
     """
-    properties =    {
-        "text.usetex": usetex,
-        "font.family": fontfamily,
-        "axes.labelsize": labelsize,
-        "font.size": fontsize,
-        "legend.fontsize": legendsize,
-        "xtick.labelsize": labelsize,
-        "ytick.labelsize": labelsize,
-        "axes.titlesize": titlesize,
-        "axes.facecolor": 'white',
-        "xtick.top": topticks,
-        "ytick.right": rightticks,
-        "xtick.direction": tickdirection,
-        "ytick.direction": tickdirection
-    }
 
-    plt.rcParams.update(properties)
+    if version > 1:
+        raise ValueError("Currently only versions 0 and 1 of style sheet are available")
+
+    path=files('niceplots').joinpath(f"euclid_stylesheet_v{version}.mplstyle")
+    plt.style.use(path)
+
+
     
 def finalizePlot(ax, title="", outputFn="", showplot=True,  showlegend=True, tightlayout=True, legendcols=1, loc_legend="best", facecolor="white", dpi=300):
     """Finalizes Plots, saves it and shows it
