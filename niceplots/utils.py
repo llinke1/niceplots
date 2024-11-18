@@ -7,13 +7,16 @@ from matplotlib.offsetbox import AnchoredText
 import matplotlib.pyplot as plt
 from importlib_resources import files
 import sys
+import matplotlib as mpl
 
-def initPlot(version=1):
+def initPlot(version=1, colortype="categorical1", numbercolors=8):
     """
     Sets the basics of the plot by initializing the euclid stylesheet
 
     Args:
-        version (int, optional): Which version of the stylesheet to use. Defaults to 1. Currently only 0 and 1 are available.
+        version (int, optional): Which version of the stylesheet to use. Defaults to 1. Currently only 0 and 1 are available. Default is 1.
+        colortype (string, optional): How to set the default colors. Options are "categorical1", "categorical2", "categorical3", "sequential" and "diverging". All options are colorblind-friendly. Default is "categorical1", which initializes the Petroff color scheme.
+        numbercolors (int, optional): How many colors to set as default colors when using "sequential" or "diverging". Is ignored, when a categorical color scheme is used. Default is 8.
     """
 
     if version > 1:
@@ -21,6 +24,8 @@ def initPlot(version=1):
 
     path=files('niceplots').joinpath(f"euclid_stylesheet_v{version}.mplstyle")
     plt.style.use(path)
+
+    setDefaultColors(type=colortype, N=numbercolors)
 
 
     
@@ -69,7 +74,7 @@ def getColorList(numberColors, cmap="copper"):
         cmap (str, optional): name of colormap. Defaults to "copper". Check https://matplotlib.org/stable/users/explain/colors/colormaps.html for possible values.
 
     Returns:
-        _type_: _description_
+        list: list of colors
     """
 
     # Check if number of colors is integer
@@ -83,6 +88,38 @@ def getColorList(numberColors, cmap="copper"):
     colors=[cm(i/numberColors) for i in range(numberColors)]
     return colors
 
+def setDefaultColors(type="categorical1", N=8):
+    """ Set default colors. All schemes are colorblind friendly.
+    The colors, depending on "type" are
+    - type="sequential": Colors with increasing brightness taken from the matplotlib color map "copper"
+    - type="diverging": Colors from blue to red, taken from the matplotlib color map "coolwarm"
+    - type="categorical1": Colors from Petroff  (https://arxiv.org/pdf/2107.02270)
+    - type="categorical2": Colors from Okabe & Ito (https://jfly.uni-koeln.de/color/#pallet)
+    - type="categorical3": Colors from Tol (https://cran.r-project.org/web/packages/khroma/vignettes/tol.html#introduction)
+    Args:
+        type(str, optional): Type of color palette scheme. Can be "sequential", "diverging", or "categorical{i}" where i=1,2,3. Default is "categorical1"
+        N (int, optional): How many colors to set as default colors when using "sequential" or "diverging". Is ignored, when a categorical color scheme is used. Default is 8.
+    
+    """
+    if type=="sequential":
+        colors=getColorList(N, cmap='copper')
+    elif type=="diverging":
+        colors=getColorList(N, cmap='coolwarm')
+    elif type=="categorical1":
+        # petroff palette based on https://arxiv.org/pdf/2107.02270
+        colors= [(24/256, 69/256, 251/256), (255/256, 94/256, 2/256), (201/256, 31/256, 22/256), (200/256, 73/256, 169/256), (173/256, 173/256, 125/256), 
+                      (134/256, 200/256, 221/256), (87/256, 141/256, 255/256), (101/256, 99/256, 100/256)]
+    elif type=="categorical2":
+        #okabe ito palette based on https://jfly.uni-koeln.de/color/#pallet
+        colors= ['#000000', '#e69f00', '#56b4e9', '#009e73', '#f0e442', '#0072b2', '#d55e00', '#cc79a7']
+    elif type=="categorical3":
+        #tol vibrant palette based on https://cran.r-project.org/web/packages/khroma/vignettes/tol.html#introduction
+        colors= ['#000000', '#ee7733', '#0077bb', '#33bbee', '#ee3377', '#cc3311', '#009988', '#bbbbbb']
+    else:
+        raise ValueError(f"{type} not implemented as color choice.")
+    
+
+    mpl.rcParams['axes.prop_cycle']=mpl.cycler(color=colors)
 
 
 # """

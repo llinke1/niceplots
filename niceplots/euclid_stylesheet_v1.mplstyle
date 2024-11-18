@@ -79,6 +79,7 @@ ytick.right:        True        # include ticks on right hand side
 xtick.direction:    in        # move ticks to inside
 ytick.direction:    in        # move ticks to inside
 
+axes.xmargin:       0           # Margin for xaxis around data
 
 ##########
 ## Text ##

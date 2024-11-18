@@ -2,6 +2,10 @@
 
 This code can help in producing nice plots! It contains routines that change the default settings of ```matplotlib``` to larger fontsizes, better ticks, and using proper TeX rendering. 
 
+## Contributors
+* Laila Linke
+* Lukas Hergt
+
 ## Prerequisites
 
 Using this code requires:
@@ -22,11 +26,11 @@ For usage, it should be as simple as using
 
 ``` 
 import niceplot.utils as nicepl
-nicepl.init()
+nicepl.initPlot()
 ```
 
 before executing your own ```matplotlib```-based plotting routines.
-See the folder ```examples/``` for some example notebooks.
+See the folder ```examples/``` for some example notebooks. The notebooks also contain (hopefully) useful information on colorpalettes, figure sizes and accessibility.
 
 ## License
 
