@@ -26,7 +26,7 @@ Simply go to the root directory of this repository and execute
 For usage, it should be as simple as using
 
 ``` 
-import niceplot.utils as nicepl
+import niceplots.utils as nicepl
 nicepl.initPlot()
 ```
 
