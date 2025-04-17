@@ -7,3 +7,5 @@ niceplots.egg-info/
 build/lib/
 
 test/
+
+.DS_Store
