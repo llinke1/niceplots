@@ -9,18 +9,18 @@ from importlib_resources import files
 import sys
 import matplotlib as mpl
 
-def initPlot(version=1, colortype="categorical1", numbercolors=8):
+def initPlot(version=2, colortype="categorical1", numbercolors=8):
     """
     Sets the basics of the plot by initializing the euclid stylesheet
 
     Args:
-        version (int, optional): Which version of the stylesheet to use. Defaults to 1. Currently only 0 and 1 are available. Default is 1.
+        version (int, optional): Which version of the stylesheet to use. Defaults to 2. Currently only 0, 1, and 2 are available.
         colortype (string, optional): How to set the default colors. Options are "categorical1", "categorical2", "categorical3", "sequential" and "diverging". All options are colorblind-friendly. Default is "categorical1", which initializes the Petroff color scheme.
         numbercolors (int, optional): How many colors to set as default colors when using "sequential" or "diverging". Is ignored, when a categorical color scheme is used. Default is 8.
     """
 
-    if version > 1:
-        raise ValueError("Currently only versions 0 and 1 of style sheet are available")
+    if version > 2:
+        raise ValueError("Currently only versions 0, 1, and 2 of style sheet are available")
 
     path=files('niceplots').joinpath(f"euclid_stylesheet_v{version}.mplstyle")
     plt.style.use(path)
@@ -120,6 +120,3 @@ def setDefaultColors(type="categorical1", N=8):
     
 
     mpl.rcParams['axes.prop_cycle']=mpl.cycler(color=colors)
-
-
-# """
