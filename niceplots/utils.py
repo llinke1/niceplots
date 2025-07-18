@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from importlib_resources import files
 import sys
 import matplotlib as mpl
+import shutil
 
 def initPlot(version=2, colortype="categorical1", numbercolors=8):
     """
@@ -24,6 +25,12 @@ def initPlot(version=2, colortype="categorical1", numbercolors=8):
 
     path=files('niceplots').joinpath(f"euclid_stylesheet_v{version}.mplstyle")
     plt.style.use(path)
+
+        # Check if LaTeX is available
+    latex_available = shutil.which("latex") is not None
+    if not latex_available:
+        print("⚠️ LaTeX not available. Rendering figures without it...")
+        plt.rcParams["text.usetex"] = latex_available
 
     setDefaultColors(type=colortype, N=numbercolors)
 
