@@ -98,31 +98,57 @@ class corner:
 
         ax.plot(xgrid, Z, color=color, alpha=alpha)
 
+    # def add_chain(self, chain, param_names, weights, lower_triangle=True, color='k', 
+    #           probs=np.array([0.68, 0.95, 0.997]), alpha_min=0.1, alpha_max=0.8,
+    #           label=None):
+        
+    #     indices = [self.param_names.index(a) for a in param_names]
+
+    #     for n, i in enumerate(indices):
+    #         y=chain[:,n]
+    #         y_par_name=self.param_names[i]
+    #         y_prior=self.priors[y_par_name]
+
+    #         for m,j in enumerate(indices):
+    #             x=chain[:,m]
+    #             x_par_name=self.param_names[j]
+    #             x_prior=self.priors[x_par_name]
+
+    #             # Do plots
+    #             if i == j:
+    #                 self._add_hist(self.axs[i, j], y, weights, y_prior, color=color, alpha=alpha_min+alpha_max)
+    #             elif (i>j and lower_triangle) or (i<j and not lower_triangle):
+    #                 self._add_contour(self.axs[i, j], x, y, weights, x_prior, y_prior, color=color, probs=probs, alpha_min=alpha_min, alpha_max=alpha_max)
+
+
+    #     if label is not None:
+    #         patch=Patch(color=color, label=label)
+    #         self.handles.append(patch)
+
     def add_chain(self, chain, param_names, weights, lower_triangle=True, color='k', 
               probs=np.array([0.68, 0.95, 0.997]), alpha_min=0.1, alpha_max=0.8,
               label=None):
-        
-        indices = [self.param_names.index(a) for a in param_names]
 
-        for n, i in enumerate(indices):
-            y=chain[:,n]
-            y_par_name=self.param_names[i]
-            y_prior=self.priors[y_par_name]
+        # Filter only valid parameters and track both original and local indices
+        valid = [(n, name, self.param_names.index(name)) for n, name in enumerate(param_names) if name in self.param_names]
 
-            for m,j in enumerate(indices):
-                x=chain[:,m]
-                x_par_name=self.param_names[j]
-                x_prior=self.priors[x_par_name]
+        for a, name_a, i in valid:
+            y = chain[:, a]
+            y_prior = self.priors[name_a]
 
-                # Do plots
-                if i == j:
-                    self._add_hist(self.axs[i, j], y, weights, y_prior, color=color, alpha=alpha_min+alpha_max)
-                elif (i>j and lower_triangle) or (i<j and not lower_triangle):
-                    self._add_contour(self.axs[i, j], x, y, weights, x_prior, y_prior, color=color, probs=probs, alpha_min=alpha_min, alpha_max=alpha_max)
+            for b, name_b, j in valid:
+                x = chain[:, b]
+                x_prior = self.priors[name_b]
 
+                # Use subplot axes based on local indices (row = a, col = b)
+                if a == b:
+                    self._add_hist(self.axs[a, b], y, weights, y_prior, color=color, alpha=alpha_min+alpha_max)
+                elif (a > b and lower_triangle) or (a < b and not lower_triangle):
+                    self._add_contour(self.axs[a, b], x, y, weights, x_prior, y_prior, 
+                                    color=color, probs=probs, alpha_min=alpha_min, alpha_max=alpha_max)
 
         if label is not None:
-            patch=Patch(color=color, label=label)
+            patch = Patch(color=color, label=label)
             self.handles.append(patch)
 
     def _add_legend(self, legendcols=1):
