@@ -102,7 +102,7 @@ class corner:
               probs=np.array([0.68, 0.95, 0.997]), alpha_min=0.1, alpha_max=0.8,
               label=None):
         
-        indices = [self.param_names.index(a) for a in param_names]
+        indices = [self.param_names.index(a) for a in param_names if a in self.param_names]
 
         for n, i in enumerate(indices):
             y=chain[:,n]
