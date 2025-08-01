@@ -8,106 +8,95 @@ from .utils import finalizePlot
 import time
 
 class corner:
-    def __init__(self, param_names, priors, kde_grid_size=50, max_samples=3000):
-        self.param_names=param_names
-        self.priors=priors
-        self.Nparams=len(self.param_names)
+    def __init__(self, param_names, priors, labels=None, kde_grid_size=50, max_samples=3000):
+        self.param_names = param_names
+        self.priors = priors
+        self.Nparams = len(self.param_names)
 
-        self.fig, self.axs=self._prep_plot()
 
-        self.handles=[]
-        self.kde_grid_size=kde_grid_size
-        self.max_samples=max_samples
+        self.handles = []
+        self.kde_grid_size = kde_grid_size
+        self.max_samples = max_samples
+        if labels == None:
+            self.labels=param_names
+        else:
+            self.labels=labels
+
+        self.fig, self.axs = self._prep_plot()
+
 
     def _prep_plot(self):
-        fig, axs=plt.subplots(self.Nparams, self.Nparams)
-
+        fig, axs = plt.subplots(self.Nparams, self.Nparams)
         plt.subplots_adjust(hspace=0.0, wspace=0.0)
 
         for i in range(self.Nparams):
-            y_par_name=self.param_names[i]
-            y_prior=self.priors[y_par_name]
+            y_par_name = self.param_names[i]
+            y_prior = self.priors[y_par_name]
 
             for j in range(self.Nparams):
-                x_par_name=self.param_names[j]
-                x_prior=self.priors[x_par_name]
+                x_par_name = self.param_names[j]
+                x_prior = self.priors[x_par_name]
 
-                ax=axs[i,j]
-                
-                # Set axis limits
+                ax = axs[i, j]
                 ax.set_xlim(x_prior[0], x_prior[1])
-                
-                if i!=j:
+                if i != j:
                     ax.set_ylim(y_prior[0], y_prior[1])
 
-                # Set axis labels
-                if (i==self.Nparams-1):
-                    ax.set_xlabel(x_par_name)
+                if i == self.Nparams - 1:
+                    ax.set_xlabel(self.labels[j])
                 else:
                     ax.set_xticklabels([])
 
-                if (j==0) and  (i!=0):
-                    ax.set_ylabel(y_par_name)
+                if j == 0 and i != 0:
+                    ax.set_ylabel(self.labels[i])
                 else:
                     ax.set_yticklabels([])
 
         return fig, axs
 
-
-
-    def _add_contour(self, ax, x, y, weights, priorsX, priorsY, color='k', probs=np.array([0.68, 0.95, 0.997]), alpha_min=0.1, alpha_max=0.8):
-        
-        # 2D KDE
+    def _add_contour(self, ax, x, y, weights, priorsX, priorsY,
+                     color='k', probs=np.array([0.68, 0.95, 0.997]),
+                     alpha_min=0.1, alpha_max=0.8, filled=True, **kwargs):
         xy = np.vstack([x, y])
         kde = gaussian_kde(xy, weights=weights)
-                
-        # Grid for evaluation
+
         xgrid = np.linspace(priorsX[0], priorsX[1], self.kde_grid_size)
         ygrid = np.linspace(priorsY[0], priorsY[1], self.kde_grid_size)
         X, Y = np.meshgrid(xgrid, ygrid)
         Z = kde(np.vstack([X.ravel(), Y.ravel()])).reshape(X.shape)
 
-        # Compute contour levels for 1σ, 2σ, 3σ
-        Z_flat = Z.flatten()
+        Z_flat = Z.ravel()
         Z_sorted = np.sort(Z_flat)[::-1]
-        dz = (xgrid[1] - xgrid[0]) * (ygrid[1] - ygrid[0])  # grid area element
-        cumsum = np.cumsum(Z_sorted*dz)
+        dz = (xgrid[1] - xgrid[0]) * (ygrid[1] - ygrid[0])
+        cumsum = np.cumsum(Z_sorted * dz)
         cumsum /= cumsum[-1]
 
         levels = Z_sorted[np.searchsorted(cumsum, probs)]
         levels = sorted(levels)
         alphas = np.linspace(alpha_min, alpha_max, len(levels))
 
-        # Plot filled contours (outer to inner)
-        for low, alpha in zip(levels, alphas):
-            #ax.contourf(X, Y, Z, levels=[low, Z.max()], colors=color, alpha=alpha)
-
+        for level, alpha in zip(levels, alphas):
             hi = Z.max()
-            if low < hi:
-                ax.contourf(X, Y, Z, levels=[low, hi], colors=color, alpha=alpha)
+            if level < hi:
+                if filled:
+                    ax.contourf(X, Y, Z, levels=[level, hi], colors=color, alpha=alpha, **kwargs)
+                ax.contour(X, Y, Z, levels=[level], colors=color, linewidths=0.5, **kwargs)
 
-
-    def _add_hist(self, ax, x, weights, priorsX, color='k', alpha=1.0):
-        
+    def _add_hist(self, ax, x, weights, priorsX, color='k', alpha=1.0, **kwargs):
         kde = gaussian_kde(x, weights=weights)
-        
-        # Grid for evaluation
         xgrid = np.linspace(priorsX[0], priorsX[1], self.kde_grid_size)
         Z = kde(xgrid)
-        ax.plot(xgrid, Z, color=color, alpha=alpha)
+        ax.plot(xgrid, Z, color=color, alpha=alpha, **kwargs)
 
-
-    def add_chain(self, chain, param_names, weights, lower_triangle=True, color='k', 
-                    probs=np.array([0.68, 0.95, 0.997]), alpha_min=0.1, alpha_max=0.8,
-                    label=None, timing=False):
-        
+    def add_chain(self, chain, param_names, weights, lower_triangle=True, color='k',
+                  probs=np.array([0.68, 0.95, 0.997]), alpha_min=0.1, alpha_max=0.8,
+                  label=None, timing=False, filled=True, **plot_kwargs):
         if timing:
             total_start = time.perf_counter()
             hist_time = 0.0
             contour_time = 0.0
             setup_start = time.perf_counter()
 
-        # Create a dictionary mapping param names to indices
         param_name_to_idx = {name: idx for idx, name in enumerate(self.param_names)}
         indices = [param_name_to_idx[a] for a in param_names if a in param_name_to_idx]
 
@@ -129,19 +118,20 @@ class corner:
                 x_par_name = self.param_names[j]
                 x_prior = self.priors[x_par_name]
 
-                # Plotting
                 if i == j:
                     if timing:
                         t0 = time.perf_counter()
-                    self._add_hist(self.axs[i, j], y, weights, y_prior, color=color, alpha=alpha_min + alpha_max)
-                    
+                    self._add_hist(self.axs[i, j], y, weights, y_prior, color=color,
+                                    **plot_kwargs)
                     if timing:
                         hist_time += time.perf_counter() - t0
                 elif (i > j and lower_triangle) or (i < j and not lower_triangle):
                     if timing:
                         t0 = time.perf_counter()
                     self._add_contour(self.axs[i, j], x, y, weights, x_prior, y_prior,
-                                        color=color, probs=probs, alpha_min=alpha_min, alpha_max=alpha_max)
+                                      color=color, probs=probs,
+                                      alpha_min=alpha_min, alpha_max=alpha_max,
+                                      filled=filled, **plot_kwargs)
                     if timing:
                         contour_time += time.perf_counter() - t0
 
@@ -151,8 +141,6 @@ class corner:
 
         if timing:
             total_end = time.perf_counter()
-
-            # Print summary
             print(f"\nTiming summary for add_chain:")
             print(f"  Setup time:           {setup_end - setup_start:.3f} s")
             print(f"  Hist plotting time:   {hist_time:.3f} s")
@@ -184,30 +172,23 @@ class corner:
                     self.axs[idx, i].axhline(value, color=color, ls='--')
                     self.axs[i, idx].axvline(value, color=color, ls='--')
 
-
-
     def finalize(self, hide_upper=True, hide_lower=False,
                  title="", outputFn="",
-                  showplot=True,
-                   legendcols=1, loc_legend="best",
-                    facecolor="white", dpi=300 ):
+                 showplot=True,
+                 legendcols=1, loc_legend="best",
+                 facecolor="white", dpi=300):
         self._add_legend(legendcols=legendcols)
 
         if hide_lower:
             self._hide_unused_axes(lower_triangle=False)
-        
         if hide_upper:
             self._hide_unused_axes(lower_triangle=True)
-
-        
         finalizePlot(self.axs, title=title, outputFn=outputFn,
                      showplot=showplot, showlegend=False,
-                     tightlayout=False, 
+                     tightlayout=False,
                      loc_legend=loc_legend,
                      facecolor=facecolor,
                      dpi=dpi)
-        
-
 
 
 
