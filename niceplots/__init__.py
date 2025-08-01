@@ -10,3 +10,5 @@ __author__ = 'Laila Linke'
 from .utils import initPlot, finalizePlot, getColorList, setDefaultColors
 
 from .corner import corner
+
+from .corner import print_all_marginal_summaries, get_latex_summary_table
