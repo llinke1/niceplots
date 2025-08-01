@@ -80,9 +80,11 @@ class corner:
 
         # Plot filled contours (outer to inner)
         for low, alpha in zip(levels, alphas):
-            ax.contourf(X, Y, Z, levels=[low, Z.max()], colors=color, alpha=alpha)
+            #ax.contourf(X, Y, Z, levels=[low, Z.max()], colors=color, alpha=alpha)
 
-
+            hi = Z.max()
+            if low < hi:
+                ax.contourf(X, Y, Z, levels=[low, hi], colors=color, alpha=alpha)
 
 
     def _add_hist(self, ax, x, weights, priorsX, color='k', alpha=1.0):
@@ -92,9 +94,7 @@ class corner:
         # Grid for evaluation
         xgrid = np.linspace(priorsX[0], priorsX[1], self.kde_grid_size)
         Z = kde(xgrid)
-
         ax.plot(xgrid, Z, color=color, alpha=alpha)
-
 
 
     def add_chain(self, chain, param_names, weights, lower_triangle=True, color='k', 
