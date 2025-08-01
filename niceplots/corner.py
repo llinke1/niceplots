@@ -306,3 +306,66 @@ def get_latex_summary_table(chain, param_names, weights=None, prob=0.68, digits=
     body = "\n".join(rows)
     footer = "\n\\hline\n\\end{tabular}"
     return header + "\n" + body + footer
+
+
+
+def get_latex_summary_table_multiple_chains(chains, param_names_list, labels, weights_list=None,
+                                            prob=0.68, digits=3):
+    """
+    Generate LaTeX table comparing mode and HPD intervals across multiple chains.
+
+    Parameters
+    ----------
+    chains : list of np.ndarray
+        List of chain arrays, shape (N_samples, N_params) each.
+    param_names_list : list of list of str
+        List of parameter name lists, one per chain.
+    labels : list of str
+        Names of each chain (used as LaTeX column headers).
+    weights_list : list of np.ndarray or None
+        Optional weights for each chain (can be None).
+    prob : float
+        HPD interval coverage (e.g. 0.68).
+    digits : int
+        Digits after decimal in table.
+
+    Returns
+    -------
+    latex_str : str
+        Full LaTeX table string.
+    """
+    # Collect union of all parameter names
+    all_params = sorted(set.union(*[set(pnames) for pnames in param_names_list]))
+    param_to_rows = {}
+
+    # Loop over parameters
+    for pname in all_params:
+        row = []
+        for chain, pnames, weights in zip(chains, param_names_list, weights_list or [None]*len(chains)):
+            if pname in pnames:
+                i = pnames.index(pname)
+                x = chain[:, i]
+                mode, (lo, hi) = compute_marginal_mode_and_hpd(x, weights=weights, prob=prob)
+                err_minus = mode - lo
+                err_plus = hi - mode
+                fmt = f"{{:.{digits}f}}"
+                val = f"${fmt.format(mode)}^{{+{fmt.format(err_plus)}}}_{{-{fmt.format(err_minus)}}}$"
+            else:
+                val = "---"
+            row.append(val)
+        param_to_rows[pname] = row
+
+    # Format as LaTeX
+    colspec = "l" + "c" * len(labels)
+    header = "\\begin{tabular}{" + colspec + "}\n\\hline"
+    header += "\nParameter & " + " & ".join(labels) + " \\\\\n\\hline"
+
+    rows = []
+    for pname in all_params:
+        param_tex = f"{pname}"
+        values = param_to_rows[pname]
+        rows.append(param_tex + " & " + " & ".join(values) + " \\\\")
+
+    footer = "\n\\hline\n\\end{tabular}"
+
+    return header + "\n" + "\n".join(rows) + footer
